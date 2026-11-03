@@ -1,48 +1,89 @@
-import { FormEvent, useState } from "react";
-import { useNotesStore } from "./store/notes-store";
+import { FormEvent, useEffect, useState } from 'react'
+import { notesApi } from './services/notes-api'
+import type { Note } from './types/note'
 
 export default function App() {
-  const notes = useNotesStore((state) => state.notes);
-  const addNote = useNotesStore((state) => state.addNote);
-  const updateNote = useNotesStore((state) => state.updateNote);
-  const deleteNote = useNotesStore((state) => state.deleteNote);
+  const [notes, setNotes] = useState<Note[]>([])
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  useEffect(() => {
+    notesApi
+      .list()
+      .then((data) => setNotes(data))
+      .catch((cause) => {
+        const message =
+          cause instanceof Error ? cause.message : 'Could not load notes.'
+        if (message.includes('404')) {
+          setError(
+            'Neon Auth is not enabled yet. In Neon Console → Data API, turn on Neon Auth, then run bun run db:setup and refresh the schema cache.',
+          )
+          return
+        }
+        setError(message)
+      })
+  }, [])
 
   const startEdit = (id: string, noteTitle: string, noteContent: string) => {
-    setEditingId(id);
-    setTitle(noteTitle);
-    setContent(noteContent);
-  };
+    setEditingId(id)
+    setTitle(noteTitle)
+    setContent(noteContent)
+  }
 
   const cancelEdit = () => {
-    setEditingId(null);
-    setTitle("");
-    setContent("");
-  };
+    setEditingId(null)
+    setTitle('')
+    setContent('')
+  }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
-    if (!trimmedTitle || !trimmedContent) return;
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmedTitle = title.trim()
+    const trimmedContent = content.trim()
+    if (!trimmedTitle || !trimmedContent) return
 
-    if (editingId) {
-      updateNote(editingId, trimmedTitle, trimmedContent);
-      cancelEdit();
-      return;
+    try {
+      setError('')
+      if (editingId) {
+        const updated = await notesApi.update(editingId, trimmedTitle, trimmedContent)
+        setNotes((current) =>
+          current.map((note) => (note.id === editingId ? updated : note)),
+        )
+        cancelEdit()
+        return
+      }
+
+      const created = await notesApi.create(trimmedTitle, trimmedContent)
+      setNotes((current) => [created, ...current])
+      setTitle('')
+      setContent('')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not save note.')
     }
+  }
 
-    addNote(trimmedTitle, trimmedContent);
-    setTitle("");
-    setContent("");
-  };
+  const handleDelete = async (id: string) => {
+    try {
+      setError('')
+      await notesApi.remove(id)
+      setNotes((current) => current.filter((note) => note.id !== id))
+      if (editingId === id) cancelEdit()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not delete note.')
+    }
+  }
 
   return (
     <main className="notes-app">
       <h1>My Notes</h1>
+
+      {error && (
+        <p className="error-banner" role="alert">
+          {error}
+        </p>
+      )}
 
       <form className="note-form" onSubmit={handleSubmit}>
         <input
@@ -66,7 +107,7 @@ export default function App() {
             </button>
           )}
           <button className="primary-button" type="submit">
-            {editingId ? "Save" : "Add note"}
+            {editingId ? 'Save' : 'Add note'}
           </button>
         </div>
       </form>
@@ -86,7 +127,7 @@ export default function App() {
                 >
                   Edit
                 </button>
-                <button type="button" onClick={() => deleteNote(note.id)}>
+                <button type="button" onClick={() => handleDelete(note.id)}>
                   Delete
                 </button>
               </div>
@@ -95,5 +136,5 @@ export default function App() {
         </ul>
       )}
     </main>
-  );
+  )
 }

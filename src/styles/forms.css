@@ -64,3 +64,13 @@
   color: var(--muted);
   background: transparent;
 }
+
+.error-banner {
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1px solid #7f1d1d;
+  border-radius: 10px;
+  color: #fecaca;
+  background: #450a0a;
+  font-size: 0.875rem;
+}
