@@ -1,112 +1,99 @@
-import { useEffect, useState } from "react";
-import { Navbar } from "./components/layout/Navbar";
-import { Sidebar } from "./components/layout/Sidebar";
-import { NoteForm } from "./components/notes/NoteForm";
-import { NotesGrid } from "./components/notes/NotesGrid";
-import { NotesHeader } from "./components/notes/NotesHeader";
-import { filterNotes, useNotes } from "./hooks/useNotes";
-import type { Note, NoteDraft, NoteView } from "./types/note";
+import { FormEvent, useState } from 'react'
+import { useNotesStore } from './store/notes-store'
 
 export default function App() {
-  const {
-    notes,
-    isLoading,
-    error,
-    createNote,
-    updateNote,
-    trashNote,
-    restoreNote,
-    deletePermanently,
-    emptyTrash,
-    favoriteNote,
-  } = useNotes();
-  const [view, setView] = useState<NoteView>("all");
-  const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState<Note | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem("notes-theme") === "dark",
-  );
-  const [message, setMessage] = useState("");
-  useEffect(() => {
-    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
-    localStorage.setItem("notes-theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
-  useEffect(() => {
-    if (!message) return;
-    const timer = window.setTimeout(() => setMessage(""), 3000);
-    return () => window.clearTimeout(timer);
-  }, [message]);
-  const save = async (draft: NoteDraft) => {
-    const result = editing
-      ? await updateNote(editing.id, draft)
-      : await createNote(draft);
-    if (result) {
-      setMessage(editing ? "Note updated." : "Note added.");
-      setEditing(null);
+  const notes = useNotesStore((state) => state.notes)
+  const addNote = useNotesStore((state) => state.addNote)
+  const updateNote = useNotesStore((state) => state.updateNote)
+  const deleteNote = useNotesStore((state) => state.deleteNote)
+
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const startEdit = (id: string, noteTitle: string, noteContent: string) => {
+    setEditingId(id)
+    setTitle(noteTitle)
+    setContent(noteContent)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setTitle('')
+    setContent('')
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmedTitle = title.trim()
+    const trimmedContent = content.trim()
+    if (!trimmedTitle || !trimmedContent) return
+
+    if (editingId) {
+      updateNote(editingId, trimmedTitle, trimmedContent)
+      cancelEdit()
+      return
     }
-  };
-  const moveToTrash = async (id: string) => {
-    if (await trashNote(id)) setMessage("Note moved to trash.");
-  };
-  const restore = async (id: string) => {
-    if (await restoreNote(id)) setMessage("Note restored.");
-  };
-  const removePermanently = async (id: string) => {
-    const message = "This note will be permanently deleted. This action cannot be undone.";
-    if (window.confirm(message) && await deletePermanently(id)) setMessage("Note permanently deleted.");
-  };
-  const clearTrash = async () => {
-    const message = "All notes in Trash will be permanently deleted. This action cannot be undone.";
-    if (window.confirm(message) && await emptyTrash()) setMessage("Trash emptied.");
-  };
-  const activeNotes = notes.filter((note) => !note.deleted_at);
-  const trashCount = notes.length - activeNotes.length;
+
+    addNote(trimmedTitle, trimmedContent)
+    setTitle('')
+    setContent('')
+  }
+
   return (
-    <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-      <Navbar
-        darkMode={darkMode}
-        onToggleTheme={() => setDarkMode((value) => !value)}
-      />
-      <Sidebar
-        activeView={view}
-        allCount={activeNotes.length}
-        favoriteCount={activeNotes.filter((note) => note.isFavorite).length}
-        trashCount={trashCount}
-        onChange={setView}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
-      />
-      <main id="notes" className="main-content">
-        <NotesHeader view={view} query={query} onQueryChange={setQuery} hasTrash={trashCount > 0} onEmptyTrash={clearTrash} />
-        {view !== "trash" && (
-          <NoteForm
-            editing={editing}
-            onSave={save}
-            onCancel={() => setEditing(null)}
-          />
-        )}
-        {error && (
-          <p className="alert error" role="alert">
-            {error}
-          </p>
-        )}
-        {message && (
-          <p className="toast" role="status">
-            {message}
-          </p>
-        )}
-        <NotesGrid
-          notes={filterNotes(notes, view, query)}
-          view={view}
-          isLoading={isLoading}
-          onEdit={setEditing}
-          onTrash={moveToTrash}
-          onRestore={restore}
-          onDeletePermanently={removePermanently}
-          onFavorite={favoriteNote}
+    <main className="notes-app">
+      <h1>My Notes</h1>
+
+      <form className="note-form" onSubmit={handleSubmit}>
+        <input
+          aria-label="Note title"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Title"
+          required
         />
-      </main>
-    </div>
-  );
+        <textarea
+          aria-label="Note content"
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          placeholder="Content"
+          required
+        />
+        <div className="form-actions">
+          {editingId && (
+            <button className="text-button" type="button" onClick={cancelEdit}>
+              Cancel
+            </button>
+          )}
+          <button className="primary-button" type="submit">
+            {editingId ? 'Save' : 'Add note'}
+          </button>
+        </div>
+      </form>
+
+      {notes.length === 0 ? (
+        <p className="empty-state">No notes yet. Add your first one above.</p>
+      ) : (
+        <ul className="notes-list">
+          {notes.map((note) => (
+            <li key={note.id} className="note-card">
+              <h2>{note.title}</h2>
+              <p>{note.content}</p>
+              <div className="note-actions">
+                <button
+                  type="button"
+                  onClick={() => startEdit(note.id, note.title, note.content)}
+                >
+                  Edit
+                </button>
+                <button type="button" onClick={() => deleteNote(note.id)}>
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  )
 }
