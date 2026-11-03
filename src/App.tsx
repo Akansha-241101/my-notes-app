@@ -1,44 +1,44 @@
-import { FormEvent, useState } from 'react'
-import { useNotesStore } from './store/notes-store'
+import { FormEvent, useState } from "react";
+import { useNotesStore } from "./store/notes-store";
 
 export default function App() {
-  const notes = useNotesStore((state) => state.notes)
-  const addNote = useNotesStore((state) => state.addNote)
-  const updateNote = useNotesStore((state) => state.updateNote)
-  const deleteNote = useNotesStore((state) => state.deleteNote)
+  const notes = useNotesStore((state) => state.notes);
+  const addNote = useNotesStore((state) => state.addNote);
+  const updateNote = useNotesStore((state) => state.updateNote);
+  const deleteNote = useNotesStore((state) => state.deleteNote);
 
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const startEdit = (id: string, noteTitle: string, noteContent: string) => {
-    setEditingId(id)
-    setTitle(noteTitle)
-    setContent(noteContent)
-  }
+    setEditingId(id);
+    setTitle(noteTitle);
+    setContent(noteContent);
+  };
 
   const cancelEdit = () => {
-    setEditingId(null)
-    setTitle('')
-    setContent('')
-  }
+    setEditingId(null);
+    setTitle("");
+    setContent("");
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const trimmedTitle = title.trim()
-    const trimmedContent = content.trim()
-    if (!trimmedTitle || !trimmedContent) return
+    event.preventDefault();
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    if (!trimmedTitle || !trimmedContent) return;
 
     if (editingId) {
-      updateNote(editingId, trimmedTitle, trimmedContent)
-      cancelEdit()
-      return
+      updateNote(editingId, trimmedTitle, trimmedContent);
+      cancelEdit();
+      return;
     }
 
-    addNote(trimmedTitle, trimmedContent)
-    setTitle('')
-    setContent('')
-  }
+    addNote(trimmedTitle, trimmedContent);
+    setTitle("");
+    setContent("");
+  };
 
   return (
     <main className="notes-app">
@@ -66,7 +66,7 @@ export default function App() {
             </button>
           )}
           <button className="primary-button" type="submit">
-            {editingId ? 'Save' : 'Add note'}
+            {editingId ? "Save" : "Add note"}
           </button>
         </div>
       </form>
@@ -95,5 +95,5 @@ export default function App() {
         </ul>
       )}
     </main>
-  )
+  );
 }
