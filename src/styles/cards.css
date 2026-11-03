@@ -1,0 +1,109 @@
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.note-card {
+  position: relative;
+  min-width: 0;
+  min-height: 144px;
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.note-card:hover {
+  border-color: var(--ring);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--text) 7%, transparent);
+}
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 22px;
+  margin-bottom: 7px;
+}
+.favorite,
+.menu-trigger {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+}
+.favorite {
+  color: #f59e0b;
+}
+.favorite:not(.selected) {
+  color: var(--muted);
+}
+.menu-trigger {
+  padding: 0;
+}
+.note-card h2 {
+  overflow: hidden;
+  margin-bottom: 6px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  letter-spacing: -0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 34px;
+  margin-bottom: 11px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.note-card footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.note-card footer span {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  white-space: nowrap;
+}
+.tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 10px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+}
+.tag-project {
+  color: color-mix(in srgb, #15803d 78%, var(--text));
+  background: color-mix(in srgb, #86efac 28%, var(--card));
+}
+.tag-fun {
+  color: color-mix(in srgb, #be185d 78%, var(--text));
+  background: color-mix(in srgb, #f9a8d4 28%, var(--card));
+}
+.tag-work {
+  color: color-mix(in srgb, #1d4ed8 78%, var(--text));
+  background: color-mix(in srgb, #93c5fd 28%, var(--card));
+}
+@media (max-width: 880px) {
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note-card {
+    transition: none;
+  }
+  .note-card:hover {
+    transform: none;
+  }
+}

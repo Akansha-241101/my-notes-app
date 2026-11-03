@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+@import './layout.css';
+@import './forms.css';
+@import './cards.css';
+@import './card-menu.css';
+@import './states.css';
+
+:root {
+  --background: #faf9ff; --surface: #ffffff; --card: #ffffff;
+  --foreground: #17152b; --muted: #66658a; --primary: #6557f5;
+  --primary-hover: #5143df; --primary-foreground: #ffffff;
+  --secondary: #efedff; --secondary-foreground: #5143df;
+  --border: #e4e2f5; --input: #e4e2f5; --ring: #a69bff;
+  --sidebar-background: #ffffff; --sidebar-foreground: #17152b;
+  --sidebar-primary: #6557f5; --sidebar-accent: #efedff; --sidebar-border: #e4e2f5;
+  --font-heading: "Cinzel", serif; --font-body: "Inter", sans-serif;
+  --bg: var(--background); --text: var(--foreground);
+}
+
+:root[data-theme='dark'], .dark {
+  --background: #0c0e14; --surface: #151823; --card: #1b1f2b;
+  --foreground: #f6f5ff; --muted: #a2a4bd; --primary: #8b7cff;
+  --primary-hover: #a196ff; --primary-foreground: #ffffff;
+  --secondary: #29243f; --secondary-foreground: #c7beff;
+  --border: #303447; --input: #303447; --ring: #8b7cff;
+  --sidebar-background: #11141d; --sidebar-foreground: #f6f5ff;
+  --sidebar-primary: #9b8cff; --sidebar-accent: #29243f; --sidebar-border: #303447;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; min-width: 320px; color: var(--text); background: var(--bg); font-family: var(--font-body); }
+button, input, textarea { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+p, h1, h2 { margin-top: 0; }
